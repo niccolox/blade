@@ -3,16 +3,29 @@ defmodule Blade do
   Documentation for `Blade`.
   """
 
-  @doc """
-  Hello world.
+  def start _type, _args do
+    index_elixircasts()
+  end
 
-  ## Examples
+  defp index_elixircasts do
+    {:ok, session} = Wallaby.start_session()
+    index = ElixirCasts.index session
 
-      iex> Blade.hello()
-      :world
+    File.mkdir_p "cache/elixircasts"
+    index
+    |> Index.record_blob("cache/elixircasts/episode.index")
 
-  """
-  def hello do
-    :world
+    open = index |> Index.choose(fn episode -> !episode[:locked] end)
+    open |> Index.record_lines("cache/elixircasts/open.index")
+
+    index
+    |> Index.choose(fn episode -> episode[:locked] end)
+    |> Index.record_lines("cache/elixircasts/closed.index")
+
+    open
+    |> Enum.map(fn addr -> session |> ElixirCasts.source(addr) end)
+    |> Index.record_lines("cache/elixircasts/source.index")
+
+    Wallaby.stop session
   end
 end

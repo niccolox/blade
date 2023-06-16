@@ -15,6 +15,7 @@ defmodule Blade.MixProject do
 
   def application do
     [
+      mod: { Blade, [] },
       extra_applications: [:logger]
     ]
   end
@@ -22,6 +23,10 @@ defmodule Blade.MixProject do
   defp deps do
     [
       {:ex_doc, "~> 0.14", only: :dev, runtime: false},
+      {:wallaby, "~> 0.30"},
+      {:config, "~> 0.1"},
+      {:json, "~> 1.4"},
+      {:sweet_xml, "~> 0.7"},
     ]
   end
 
