@@ -1,11 +1,15 @@
 import Wallaby.Browser, only: [visit: 2, click: 2, all: 2, find: 2]
-import Wallaby.Query, only: [css: 1]
+import Wallaby.Query, only: [link: 1, css: 1]
 import Wallaby.Element, only: [ attr: 2 ]
 # import SweetXml
 
 defmodule Blade.UscodeHouseGov do
   def index session do
-    session |> index_releases |> index_statues
+    File.mkdir_p "cache/uscode.house.gov/statutes"
+    session
+    |> index_statues_volume
+    |> index_statues_year
+    |> index_releases
   end
 
   defp index_releases session do
@@ -21,8 +25,8 @@ defmodule Blade.UscodeHouseGov do
     # ]))
   end
 
-  defp index_statues session do
-    File.mkdir_p "cache/uscode.house.gov/statutes"
+  defp index_statues_year session do
+    IO.puts "Indexing years."
     session
     |> visit("https://uscode.house.gov")
     |> click(css "div#item_OTHER_TABLES_TOOLS")
@@ -33,15 +37,40 @@ defmodule Blade.UscodeHouseGov do
       session |> visit(address) |> all(css "div.yearmaster > span > a")
       |> Enum.map(fn x -> [ attr(x, 'text'), attr(x, 'href') ] end)
       |> Enum.map(fn [issue, address] ->
-        (place = "cache/uscode.house.gov/statutes/#{year}/#{issue}/index.html")
+        (place = "cache/uscode.house.gov/statutes/index.year/#{year}/#{issue}.html")
                  |> Path.dirname
                  |> File.mkdir_p
         IO.puts place
         session |> visit(address) |> find(css "table.table3act") |> attr("outerHTML")
         |> Binary.split(<<"\n">>)
         |> Index.record_lines(place)
-        # |> String.replace("\n", "\n")
       end)
     end)
+    session
+  end
+
+  defp index_statues_volume session do
+    IO.puts "Indexing volumes."
+    response = session
+    |> visit("https://uscode.house.gov")
+    |> click(css "div#item_OTHER_TABLES_TOOLS")
+    |> click(css "div#item_TABLEIII")
+    |> click(link "Statutes at Large Volumes")
+    |> all(css "div.alltable3statutesatlargevolumes > span > a")
+    |> Enum.map(fn x -> [ attr(x, 'text'), attr(x, 'href') ] end)
+    |> Enum.map(fn [volume, address] ->
+      session |> visit(address) |> all(css "div.statutesatlargevolumemaster > span > a")
+      |> Enum.map(fn x -> [ attr(x, 'text'), attr(x, 'href') ] end)
+      |> Enum.map(fn [issue, address] ->
+        (place = "cache/uscode.house.gov/statutes/index.volume/#{volume}/#{issue}.html")
+                 |> Path.dirname
+                 |> File.mkdir_p
+        IO.puts place
+        session |> visit(address) |> find(css "table.table3act") |> attr("outerHTML")
+        |> Binary.split(<<"\n">>)
+        |> Index.record_lines(place)
+      end)
+    end)
+    session
   end
 end

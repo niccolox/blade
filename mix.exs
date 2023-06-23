@@ -4,7 +4,7 @@ defmodule Blade.MixProject do
   def project do
     [
       app: :blade,
-      version: "0.0.1",
+      version: "0.0.2",
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -27,7 +27,6 @@ defmodule Blade.MixProject do
       {:ex_doc, "~> 0.14", only: :dev, runtime: false},
       {:json, "~> 1.4"},
       {:sweet_xml, "~> 0.7"},
-      {:unicode, "~> 1.16" },
       {:wallaby, "~> 0.30"},
     ]
   end
