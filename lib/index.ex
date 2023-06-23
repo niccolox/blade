@@ -7,7 +7,7 @@ defmodule Index do
 
   def record body, node do
     {:ok, cache} = File.open(node, [:write])
-    IO.write cache, body
+    IO.binwrite cache, body
     File.close cache
   end
 
