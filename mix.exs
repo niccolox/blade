@@ -23,7 +23,6 @@ defmodule Blade.MixProject do
   defp deps do
     [
       {:binary, "~> 0.0" },
-      {:config, "~> 0.1"},
       {:ex_doc, "~> 0.14", only: :dev, runtime: false},
       {:json, "~> 1.4"},
       {:sweet_xml, "~> 0.7"},
