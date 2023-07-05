@@ -9,6 +9,7 @@ defmodule Index do
     {:ok, cache} = File.open(node, [:write])
     IO.binwrite cache, body
     File.close cache
+    body
   end
 
   def record_lines body, node do

@@ -7,8 +7,8 @@ defmodule Blade.UscodeHouseGov do
   def index session do
     File.mkdir_p "cache/uscode.house.gov/statutes"
     session
-    |> index_statues_volume
-    |> index_statues_year
+    |> index_statutes_volume
+    |> index_statutes_year
     |> index_releases
   end
 
@@ -25,7 +25,7 @@ defmodule Blade.UscodeHouseGov do
     # ]))
   end
 
-  defp index_statues_year session do
+  defp index_statutes_year session do
     IO.puts "Indexing years."
     session
     |> visit("https://uscode.house.gov")
@@ -37,21 +37,24 @@ defmodule Blade.UscodeHouseGov do
       session |> visit(address) |> all(css "div.yearmaster > span > a")
       |> Enum.map(fn x -> [ attr(x, 'text'), attr(x, 'href') ] end)
       |> Enum.map(fn [issue, address] ->
-        (place = "cache/uscode.house.gov/statutes/index.year/#{year}/#{issue}.html")
-                 |> Path.dirname
-                 |> File.mkdir_p
-        IO.puts place
-        session |> visit(address) |> find(css "table.table3act") |> attr("outerHTML")
-        |> Binary.split(<<"\n">>)
-        |> Index.record_lines(place)
+        place = "cache/uscode.house.gov/statutes/index.year/#{year}/#{issue}.html"
+        Cache.make place, fn ->
+          place |> Path.dirname |> File.mkdir_p; IO.puts "Caching: " <> place;
+          session |>
+          visit(address) |>
+          find(css "table.table3act")
+          |> attr("outerHTML")
+          |> Binary.split(<<"\n">>)
+          |> Index.record_lines(place)
+        end
       end)
     end)
     session
   end
 
-  defp index_statues_volume session do
+  defp index_statutes_volume session do
     IO.puts "Indexing volumes."
-    response = session
+    session
     |> visit("https://uscode.house.gov")
     |> click(css "div#item_OTHER_TABLES_TOOLS")
     |> click(css "div#item_TABLEIII")
@@ -62,13 +65,16 @@ defmodule Blade.UscodeHouseGov do
       session |> visit(address) |> all(css "div.statutesatlargevolumemaster > span > a")
       |> Enum.map(fn x -> [ attr(x, 'text'), attr(x, 'href') ] end)
       |> Enum.map(fn [issue, address] ->
-        (place = "cache/uscode.house.gov/statutes/index.volume/#{volume}/#{issue}.html")
-                 |> Path.dirname
-                 |> File.mkdir_p
-        IO.puts place
-        session |> visit(address) |> find(css "table.table3act") |> attr("outerHTML")
-        |> Binary.split(<<"\n">>)
-        |> Index.record_lines(place)
+        place = "cache/uscode.house.gov/statutes/index.volume/#{volume}/#{issue}.html"
+        Cache.make place, fn ->
+          place |> Path.dirname |> File.mkdir_p; IO.puts "Caching: " <> place;
+          session
+          |> visit(address)
+          |> find(css "table.table3act")
+          |> attr("outerHTML")
+          |> Binary.split(<<"\n">>)
+          |> Index.record_lines(place)
+        end
       end)
     end)
     session
