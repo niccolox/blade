@@ -5,7 +5,7 @@ import Wallaby.Element, only: [ attr: 2 ]
 
 defmodule Blade.UscodeHouseGov do
   def index session do
-    File.mkdir_p "cache/uscode.house.gov/statutes"
+    File.mkdir_p "~/.cache.channel/uscode.house.gov/statutes"
     session
     |> index_statutes_volume
     |> index_statutes_year
@@ -37,7 +37,7 @@ defmodule Blade.UscodeHouseGov do
       session |> visit(address) |> all(css "div.yearmaster > span > a")
       |> Enum.map(fn x -> [ attr(x, 'text'), attr(x, 'href') ] end)
       |> Enum.map(fn [issue, address] ->
-        place = "cache/uscode.house.gov/statutes/index.year/#{year}/#{issue}.html"
+        place = "~/.cache.channel/uscode.house.gov/statutes/index.year/#{year}/#{issue}.html"
         Cache.make place, fn ->
           place |> Path.dirname |> File.mkdir_p; IO.puts "Caching: " <> place;
           session |>

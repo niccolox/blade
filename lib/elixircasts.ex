@@ -3,7 +3,22 @@ import Wallaby.Query, only: [link: 1, css: 1]
 import Wallaby.Element, only: [ attr: 2 ]
 import SweetXml
 
-defmodule ElixirCasts do
+defmodule Blade.ElixirCasts do
+  defp record session do
+    File.mkdir_p "cache/elixircasts"
+    index = session |> index
+    index |> Index.record_blob("cache/elixircasts/episode.index")
+    index
+    |> Index.choose(fn episode -> episode[:locked] end)
+    |> Index.record_lines("cache/elixircasts/closed.index")
+
+    open = index |> Index.choose(fn episode -> !episode[:locked] end)
+    open |> Index.record_lines("cache/elixircasts/open.index")
+    open
+    |> Enum.map(fn addr -> session |> source(addr) end)
+    |> Index.record_lines("cache/elixircasts/source.index")
+  end
+
   def index session do
     session
     |> visit("https://elixircasts.io")
