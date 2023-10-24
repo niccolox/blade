@@ -4,15 +4,15 @@ import Wallaby.Element, only: [ attr: 2 ]
 # import SweetXml
 
 defmodule Blade.UscodeHouseGov do
-  def index session do
-    File.mkdir_p "~/.cache.channel/uscode.house.gov/statutes"
+  def index session, cache do
+    File.mkdir_p "#{cache}/uscode.house.gov/statutes"
     session
-    |> index_statutes_volume
-    |> index_statutes_year
-    |> index_releases
+    |> index_statutes_volume(cache)
+    |> index_statutes_year(cache)
+    |> index_releases(cache)
   end
 
-  defp index_releases session do
+  defp index_releases session, cache do
     session
     |> visit("https://uscode.house.gov")
     # |> click(link "Other OLRC Tables and Tools")
@@ -25,7 +25,7 @@ defmodule Blade.UscodeHouseGov do
     # ]))
   end
 
-  defp index_statutes_year session do
+  defp index_statutes_year session, cache do
     IO.puts "Indexing years."
     session
     |> visit("https://uscode.house.gov")
@@ -37,7 +37,7 @@ defmodule Blade.UscodeHouseGov do
       session |> visit(address) |> all(css "div.yearmaster > span > a")
       |> Enum.map(fn x -> [ attr(x, 'text'), attr(x, 'href') ] end)
       |> Enum.map(fn [issue, address] ->
-        place = "~/.cache.channel/uscode.house.gov/statutes/index.year/#{year}/#{issue}.html"
+        place = "#{cache}/uscode.house.gov/statutes/index.year/#{year}/#{issue}.html"
         Cache.make place, fn ->
           place |> Path.dirname |> File.mkdir_p; IO.puts "Caching: " <> place;
           session |>
@@ -52,7 +52,7 @@ defmodule Blade.UscodeHouseGov do
     session
   end
 
-  defp index_statutes_volume session do
+  defp index_statutes_volume session, cache do
     IO.puts "Indexing volumes."
     session
     |> visit("https://uscode.house.gov")
@@ -65,7 +65,7 @@ defmodule Blade.UscodeHouseGov do
       session |> visit(address) |> all(css "div.statutesatlargevolumemaster > span > a")
       |> Enum.map(fn x -> [ attr(x, 'text'), attr(x, 'href') ] end)
       |> Enum.map(fn [issue, address] ->
-        place = "cache/uscode.house.gov/statutes/index.volume/#{volume}/#{issue}.html"
+        place = "#{cache}/uscode.house.gov/statutes/index.volume/#{volume}/#{issue}.html"
         Cache.make place, fn ->
           place |> Path.dirname |> File.mkdir_p; IO.puts "Caching: " <> place;
           session
@@ -76,7 +76,6 @@ defmodule Blade.UscodeHouseGov do
           |> Index.record_lines(place)
         end
       end)
-    end)
-    session
+    end); session
   end
 end
