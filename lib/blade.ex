@@ -4,9 +4,13 @@ defmodule Blade do
   """
 
   def start _type, _args do
+    # cache = "~/.cache.channel"
+    cache = "cache.local"
+
     Wallaby.start_session() |> elem(1)
-    |> Blade.LobbyingdisclosureHouseGov.index("cache.local")
-    # |> Blade.UscodeHouseGov.index("~/.cache.channel")
+    |> Blade.IrsGov.index(cache)
+    # |> Blade.LobbyingdisclosureHouseGov.index(cache)
+    # |> Blade.UscodeHouseGov.index(cache)
     |> Wallaby.stop
   end
 end
